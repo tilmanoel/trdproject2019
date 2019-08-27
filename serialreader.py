@@ -1,6 +1,7 @@
 import serial
 import numpy as np
 import requests
+import time
 
 #####
 #Code to write data output from Arduino Uno into the
@@ -24,18 +25,27 @@ count = 0
 type = 'voltage,' #should eventually change depending on measurement
 data = '' #appended depending on measurement parameter
 
-connected = True
 ser = None
+line = ''
 
 def main():
+	connected = False
 	while True:
 		try:
 			ser = serial.Serial("/dev/ttyACM0",9600,timeout = 1)
+			line = ser.readline()
+			connected = True
+
 		except serial.SerialException:
-			print("Device disconnected.")
+			print "Device disconnected."
 			connected = False
+			if ser != None:
+				ser.close()
+			time.sleep(1)
+
+#		print ser.is_open,"connected = ",connected
 		if connected:
-	      		line = ser.readline()
+#			print "In, line = ",line,":"
   	   	 	if line != '' and line != "Voltage Reader":
 				line.rstrip()
 	       			terms = line.split(" ")
