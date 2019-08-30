@@ -12,7 +12,7 @@ import time
 #extended to send all measured parameters from the Arduino to the database
 #
 #Author: Tilman Oelgeschlaeger
-#Last edited: 27/08/2019
+#Last edited: 30/08/2019
 #####
 
 params = (
@@ -22,7 +22,7 @@ params = (
 #the below is just as a test input
 
 count = 0
-type = 'voltage,' #should eventually change depending on measurement
+type = '' #should eventually change depending on measurement
 data = '' #appended depending on measurement parameter
 
 ser = None
@@ -33,35 +33,47 @@ def main():
 	while True:
 		try:
 			ser = serial.Serial("/dev/ttyACM0",9600,timeout = 1)
-			line = ser.readline()
+			list = []
+			for i in range(6):
+				list.append(ser.readline()) #since this resets on each loop
+#			print list
 			connected = True
 
 		except serial.SerialException:
 			print "Device disconnected."
 			connected = False
-			if ser != None:
+			if ser != None: #make ser null if nothing's at the serial port
 				ser.close()
 			time.sleep(1)
 
 #		print ser.is_open,"connected = ",connected
 		if connected:
 #			print "In, line = ",line,":"
-  	   	 	if line != '' and line != "Voltage Reader":
-				line.rstrip()
-	       			terms = line.split(" ")
-#				print terms[0]
-       				if terms[0] == 'TV':
-#	    				print 'in'
-            				data = type + 'source=top value=' + terms[1]
-            			elif terms[0] == 'MV':
-            				data = type + 'source=middle value=' + terms[1]
-				elif terms[0] == 'BV':
-       					data = type + 'source=bottom value=' + terms[1]
-				else:
-            				continue
-#				print data
-        			response = requests.post('http://localhost:8086/write',params=params,data=data)
-#				print response.content
-       			print line,
+			for line in list:
+  	   	 		if line != '':
+					line.rstrip()
+		       			terms = line.split(" ")
+#					print terms[0]
+       					if terms[0] == 'TV':
+#	    					print 'in'
+            					data = 'voltage,source=top value=' + terms[1]
+	            			elif terms[0] == 'MV':
+        	    				data = 'voltage,source=middle value=' + terms[1]
+					elif terms[0] == 'BV':
+       						data = 'voltage,source=bottom value=' + terms[1]
+					elif terms[0] == 'TA':
+						data = 'current,source=top value=' + terms[1]
+					elif terms[0] == 'MA':
+						data = 'current,source=middle value=' + terms[1]
+					elif terms[0] == 'BA':
+						data = 'current,source-bottom value=' + terms[1]
+					else:
+            					continue
+
+#					print data
+        				response = requests.post('http://localhost:8086/write',params=params,data=data)
+#					print response.content
+#   					print line,
+
 
 main()
