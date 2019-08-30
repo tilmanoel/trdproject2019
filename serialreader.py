@@ -25,19 +25,29 @@ count = 0
 type = '' #should eventually change depending on measurement
 data = '' #appended depending on measurement parameter
 
-ser = None
 line = ''
 
 def main():
+	ser = None
 	connected = False
 	while True:
 		try:
+			print "Connecting... ",
 			ser = serial.Serial("/dev/ttyACM0",9600,timeout = 1)
+			print "Finished connecting"
 			list = []
-			for i in range(6):
-				list.append(ser.readline()) #since this resets on each loop
-#			print list
+			now = time.time()
+			while(len(list) < 6):
+#				print "Reading"
+				line = ser.readline(12).rstrip()
+			#	print line
+				if line != '':
+					list.append(line)
+#					print list[len(list) -1]
+#				print "Done"
+
 			connected = True
+
 
 		except serial.SerialException:
 			print "Device disconnected."
@@ -50,30 +60,28 @@ def main():
 		if connected:
 #			print "In, line = ",line,":"
 			for line in list:
-  	   	 		if line != '':
-					line.rstrip()
-		       			terms = line.split(" ")
-#					print terms[0]
-       					if terms[0] == 'TV':
-#	    					print 'in'
-            					data = 'voltage,source=top value=' + terms[1]
-	            			elif terms[0] == 'MV':
-        	    				data = 'voltage,source=middle value=' + terms[1]
-					elif terms[0] == 'BV':
-       						data = 'voltage,source=bottom value=' + terms[1]
-					elif terms[0] == 'TA':
-						data = 'current,source=top value=' + terms[1]
-					elif terms[0] == 'MA':
-						data = 'current,source=middle value=' + terms[1]
-					elif terms[0] == 'BA':
-						data = 'current,source-bottom value=' + terms[1]
-					else:
-            					continue
+		       		terms = line.split(" ")
+#				print terms[0]
+       				if terms[0] == 'TV':
+#    					print 'in'
+            				data = 'voltage,source=top value=' + terms[1]
+	            		elif terms[0] == 'MV':
+        	    			data = 'voltage,source=middle value=' + terms[1]
+				elif terms[0] == 'BV':
+       					data = 'voltage,source=bottom value=' + terms[1]
+				elif terms[0] == 'TA':
+					data = 'current,source=top value=' + terms[1]
+				elif terms[0] == 'MA':
+					data = 'current,source=middle value=' + terms[1]
+				elif terms[0] == 'BA':
+					data = 'current,source-bottom value=' + terms[1]
+				else:
+            				continue
 
-#					print data
-        				response = requests.post('http://localhost:8086/write',params=params,data=data)
-#					print response.content
-#   					print line,
-
+#				print data
+        			response = requests.post('http://localhost:8086/write',params=params,data=data)
+#				print response.content
+   				print data
+			ser.close()
 
 main()
