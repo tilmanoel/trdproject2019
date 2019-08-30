@@ -4,13 +4,13 @@ import requests
 import time
 
 #####
-#Code to write data output from Arduino Uno into the
+#Code to write data output from an Arduino Uno into an
 #InfluxDB database. Important values are data and params,
-#which determine where/ the query is sent and what tags
-#the read data is assigned. Note that as of now the code assumes only
-#one voltage value from one source is being sent out. This will be
-#extended to send all measured parameters from the Arduino to the database
-#
+#which determine where/how the query is sent and what tags
+#the read data is assigned. Currently the code reads only low voltage
+#values, reading of the sensors on the Arduino weather shield has
+#not yet been implemented. The code on the Arduino is given on the Github
+#page.
 #Author: Tilman Oelgeschlaeger
 #Last edited: 30/08/2019
 #####
@@ -21,12 +21,6 @@ params = (
 #note that data values should be edited for different measurements;
 #the below is just as a test input
 
-count = 0
-type = '' #should eventually change depending on measurement
-data = '' #appended depending on measurement parameter
-
-line = ''
-
 def main():
 	ser = None
 	connected = False
@@ -36,7 +30,6 @@ def main():
 			ser = serial.Serial("/dev/ttyACM0",9600,timeout = 1)
 			print "Finished connecting"
 			list = []
-			now = time.time()
 			while(len(list) < 6):
 #				print "Reading"
 				line = ser.readline(12).rstrip()
@@ -78,7 +71,7 @@ def main():
 				else:
             				continue
 
-#				print data
+#				print line,
         			response = requests.post('http://localhost:8086/write',params=params,data=data)
 #				print response.content
    				print data
