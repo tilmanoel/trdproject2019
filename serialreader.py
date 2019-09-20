@@ -4,8 +4,6 @@ import sys
 #print(sys.path)
 
 import serial
-import numpy as np
-import math
 import requests
 import time
 
